@@ -71,10 +71,13 @@ validate(Spec) ->
 %%  spec. It returns the JobRef that can be used to manipulate the job
 %%  after it is created.
 
--spec cron/1 :: (job()) -> job_ref().
+-spec cron/1 :: (job()) -> job_ref() | error.
 cron(Job) ->
     JobRef = make_ref(),
-    ecrn_cron_sup:add_job(JobRef, Job).
+    case ecrn_cron_sup:add_job(JobRef, Job) of
+      {ok, JobRef} -> JobRef;
+      {error, _} -> error
+    end.
 %% @doc
 %%  Convienience method to specify a job run to run on a daily basis
 %%  at a specific time.

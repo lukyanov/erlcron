@@ -29,10 +29,12 @@ start_link() ->
 
 %% @doc
 %%  Add a chron job to be supervised
--spec add_job/2 :: (erlcron:job_ref(), erlcron:job()) -> erlcron:job_ref().
+-spec add_job/2 :: (erlcron:job_ref(), erlcron:job()) -> {ok, erlcron:job_ref()} | {error, term()}.
 add_job(JobRef, Task) ->
-    {ok, _} = supervisor:start_child(?SERVER, [JobRef, Task]),
-    JobRef.
+    case supervisor:start_child(?SERVER, [JobRef, Task]) of
+        {ok, _} -> {ok, JobRef};
+        {error, Err} -> {error, Err}
+    end.
 
 %%%===================================================================
 %%% Supervisor callbacks
