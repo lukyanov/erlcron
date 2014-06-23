@@ -12,6 +12,7 @@
 %% API
 -export([start_link/0,
          cancel/1,
+         get_job/1,
          datetime/0,
          set_datetime/1,
          multi_set_datetime/2]).
@@ -38,6 +39,10 @@ start_link() ->
 -spec cancel/1 :: (erlcron:job_ref()) -> ok | undefined.
 cancel(AlarmRef) ->
     gen_server:call(?SERVER, {cancel, AlarmRef}).
+
+-spec get_job/1 :: (erlcron:job_ref()) -> erlcron:job() | undefined.
+get_job(AlarmRef) ->
+    gen_server:call(?SERVER, {get_job, AlarmRef}).
 
 -spec datetime/0 :: () -> {calendar:datetime(), erlcron:seconds()}.
 datetime() ->
@@ -66,6 +71,8 @@ init([]) ->
 %% @private
 handle_call({cancel, AlarmRef}, _From, State) ->
     {reply, internal_cancel(AlarmRef), State};
+handle_call({get_job, AlarmRef}, _From, State) ->
+    {reply, internal_get_job(AlarmRef), State};
 handle_call(get_datetime, _From, State = #state{reference_datetime = DateTime,
                                                 datetime_at_reference = Actual}) ->
     {reply, {DateTime, Actual}, State};
@@ -113,4 +120,12 @@ internal_cancel(AlarmRef) ->
             undefined;
         {ok, [Pid]} ->
             ecrn_agent:cancel(Pid)
+    end.
+
+internal_get_job(AlarmRef) ->
+    case ecrn_reg:get(AlarmRef) of
+        undefined ->
+            undefined;
+        {ok, [Pid]} ->
+            ecrn_agent:get_job(Pid)
     end.

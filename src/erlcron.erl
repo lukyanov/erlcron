@@ -6,6 +6,7 @@
 
 -export([validate/1,
          cron/1,
+         get_job/1,
          at/2,
          once/2,
          cancel/1,
@@ -78,6 +79,7 @@ cron(Job) ->
       {ok, JobRef} -> JobRef;
       {error, _} -> error
     end.
+
 %% @doc
 %%  Convienience method to specify a job run to run on a daily basis
 %%  at a specific time.
@@ -98,6 +100,12 @@ once(When, Fun) ->
 -spec cancel/1 :: (job_ref()) -> ok | undefined.
 cancel(JobRef) ->
     ecrn_control:cancel(JobRef).
+
+%% @doc
+%% Get job spec from job reference
+-spec get_job/1 :: (job_ref()) -> undefined | job().
+get_job(JobRef) ->
+    ecrn_control:get_job(JobRef).
 
 %% @doc
 %%  Get the current date time of the running erlcron system.

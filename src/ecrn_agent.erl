@@ -12,6 +12,7 @@
 %% API
 -export([start_link/2,
          cancel/1,
+         get_job/1,
          get_datetime/1,
          set_datetime/3,
          recalculate/1,
@@ -58,6 +59,10 @@ get_datetime(Pid) ->
 cancel(Pid) ->
     gen_server:cast(Pid, shutdown).
 
+-spec get_job/1 :: (pid()) -> ok.
+get_job(Pid) ->
+    gen_server:call(Pid, get_job).
+
 -spec set_datetime/3 :: (pid(), calendar:datetime(), erlcron:seconds()) -> ok.
 set_datetime(Pid, DateTime, Actual) ->
     gen_server:cast(Pid, {set_datetime, DateTime, Actual}).
@@ -101,6 +106,13 @@ init([JobRef, Job]) ->
     end.
 
 %% @private
+handle_call(get_job, _From, State) ->
+    case until_next_milliseconds(State, State#state.job) of
+        {ok, Millis} ->
+            {reply, State#state.job, State, Millis};
+        {error, _}  ->
+            {stop, normal, ok, State}
+    end;
 handle_call(_Msg, _From, State) ->
     case until_next_milliseconds(State, State#state.job) of
         {ok, Millis} ->
